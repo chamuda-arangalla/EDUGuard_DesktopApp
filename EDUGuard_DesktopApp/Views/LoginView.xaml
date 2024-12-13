@@ -1,0 +1,38 @@
+﻿<UserControl x:Class="EDUGuard_DesktopApp.Views.LoginView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Height="350" Width="400">
+    <Grid Margin="10">
+        <StackPanel>
+            <!-- Username Row -->
+            <Grid Margin="0,5,0,10">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <!-- For the label -->
+                    <ColumnDefinition Width="*" />
+                    <!-- For the input -->
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Username:" FontSize="16" VerticalAlignment="Center" />
+                <TextBox x:Name="UsernameTextBox" Grid.Column="1" Width="200" Margin="49,0,56,0" />
+            </Grid>
+
+            <!-- Password Row -->
+            <Grid Margin="0,5,0,20">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <TextBlock Text="Password:" FontSize="16" VerticalAlignment="Center" />
+                <PasswordBox x:Name="PasswordBox" Grid.Column="1" Width="200" />
+            </Grid>
+
+            <!-- Buttons -->
+            
+                <Button Content="Login" Width="100" Height="30" Margin="5" Click="LoginButton_Click" />
+                <Button Content="Sign Up" Width="100" Height="30" Margin="5" Click="NavigateToSignUp" />
+           
+        </StackPanel>
+    </Grid>
+</UserControl>
