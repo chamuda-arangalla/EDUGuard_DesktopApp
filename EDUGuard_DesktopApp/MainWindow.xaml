@@ -5,8 +5,30 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EDUGuard_DesktopApp"
         mc:Ignorable="d"
-        Title="EDUGurad" Height="450" Width="800">
+        Title="EDUGuard" Height="450" Width="800">
     <Grid>
-        <ContentControl x:Name="MainContent" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+        <!-- Define Three Rows -->
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <!-- Header -->
+            <RowDefinition Height="Auto" />
+            <!-- Logo -->
+            <RowDefinition Height="*" />
+            <!-- Main Content -->
+        </Grid.RowDefinitions>
+
+        <!-- Header -->
+        <Grid Background="#0CB912" Grid.Row="0" Height="60">
+            <!-- Title -->
+            <TextBlock Text="EDUGuard" FontSize="24" FontWeight="Bold" Foreground="White" 
+                       VerticalAlignment="Center" HorizontalAlignment="Center" />
+        </Grid>
+
+        <!-- Logo -->
+        <Image Source="/Assets/EDUGuard-logo.png" Grid.Row="1" Width="148" Height="148"
+               HorizontalAlignment="Center" Margin="0,10,0,10" />
+
+        <!-- Main Content -->
+        <ContentControl x:Name="MainContent" Grid.Row="2" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
     </Grid>
 </Window>

@@ -27,6 +27,15 @@ namespace EDUGuard_DesktopApp.Views
                 MessageBox.Show("Login successful!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 // Navigate to dashboard or application home
+                // Start session
+                SessionManager.StartSession(user);
+
+                // Open DashboardView
+                DashboardView dashboard = new DashboardView();
+                dashboard.Show();
+
+                // Close the login window
+                Window.GetWindow(this)?.Close();
             }
             else
             {
