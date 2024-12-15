@@ -31,8 +31,37 @@
                 </Grid>
             </TabItem>
             <TabItem Header="Profile">
-                <Grid>
-                    <TextBlock Text="My profile" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <Grid Margin="10">
+                    <StackPanel>
+                        <TextBlock Text="User Profile" FontSize="20" FontWeight="Bold" Margin="0,0,0,20" />
+
+                        <!-- First Name -->
+                        <TextBlock Text="First Name:" FontSize="14" />
+                        <TextBox x:Name="FirstNameTextBox" Width="300" Margin="0,5,0,10" />
+
+                        <!-- Last Name -->
+                        <TextBlock Text="Last Name:" FontSize="14" />
+                        <TextBox x:Name="LastNameTextBox" Width="300" Margin="0,5,0,10" />
+
+                        <!-- Email -->
+                        <TextBlock Text="Email:" FontSize="14" />
+                        <TextBox x:Name="EmailTextBox" Width="300" Margin="0,5,0,10" IsEnabled="False" />
+
+                        <!-- Contact Number -->
+                        <TextBlock Text="Contact Number:" FontSize="14" />
+                        <TextBox x:Name="ContactNumberTextBox" Width="300" Margin="0,5,0,20" />
+
+                        <!-- Age -->
+                        <TextBlock Text="Age:" FontSize="14" />
+                        <TextBox x:Name="AgeTextBox" Width="300" Margin="0,5,0,20" />
+
+                        <!-- Buttons -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Margin="0,10,0,0">
+                            <Button Content="Update" Width="100" Click="UpdateButton_Click" Margin="0,0,10,0" />
+                            <Button Content="Delete Account" Width="150" Background="Red" Foreground="White" 
+                            Click="DeleteButton_Click" />
+                        </StackPanel>
+                    </StackPanel>
                 </Grid>
             </TabItem>
         </TabControl>
