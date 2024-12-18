@@ -11,11 +11,18 @@
         <!-- Header -->
         <Grid Background="#0CB912" Grid.Row="0" Height="60">
             <TextBlock Text="Dashboard" FontSize="24" FontWeight="Bold" Foreground="White"
-                       VerticalAlignment="Center" HorizontalAlignment="Left" Margin="10,0,0,0" />
-            <Button Width="40" Height="40" HorizontalAlignment="Right" VerticalAlignment="Center" Margin="10"
-                    Click="SettingsButton_Click">
-                <Image Source="/Assets/settings-icon.png" Width="20" Height="20" />
-            </Button>
+               VerticalAlignment="Center" Margin="10,0,0,0" DockPanel.Dock="Left" />
+
+            <!-- Buttons Panel -->
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,10,0">
+                <!-- Settings Button -->
+                <Button Width="40" Height="40" Margin="0,0,10,0" Click="SettingsButton_Click" Background="Transparent" BorderThickness="0">
+                    <Image Source="/Assets/settings-icon.png" Width="20" Height="20" />
+                </Button>
+
+                <!-- Logout Button -->
+                <Button Content="Logout" Width="100" Height="30" Click="LogoutButton_Click" />
+            </StackPanel>
         </Grid>
 
         <!-- Content -->

@@ -22,6 +22,25 @@ namespace EDUGuard_DesktopApp.Views
             InitializeComponent();
             LoadUserProfile();
         }
+        private void LogoutButton_Click(object sender, RoutedEventArgs e)
+        {
+            // Confirm logout
+            var result = MessageBox.Show("Are you sure you want to log out?", "Logout Confirmation",
+                                         MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                // Clear session
+                SessionManager.EndSession();
+
+                // Close current window
+                this.Close();
+
+                // Navigate back to Login Window
+                var mainWindow = new MainWindow();
+                mainWindow.Show();
+            }
+        }
 
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
