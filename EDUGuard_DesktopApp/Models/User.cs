@@ -19,5 +19,9 @@ namespace EDUGuard_DesktopApp.Models
         public string Email { get; set; } // Used as the username
         public string Password { get; set; }
         public string ContactNumber { get; set; }
+
+        // field for Posture Data 
+        public List<String> PostureData { get; set; } = new List<String>();
     }
+
 }

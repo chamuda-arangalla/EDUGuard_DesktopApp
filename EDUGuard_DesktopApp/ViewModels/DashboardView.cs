@@ -1,13 +1,19 @@
-﻿using System.Windows;
+﻿using System.Diagnostics;
+using System;
+using System.IO;
+using System.Text.Json;
+using System.Windows;
 using EDUGuard_DesktopApp.Models;
 using EDUGuard_DesktopApp.Utilities;
 using MongoDB.Driver;
+using System.Linq;
 
 namespace EDUGuard_DesktopApp.Views
 {
     public partial class DashboardView : Window
     {
         private readonly DatabaseHelper _dbHelper = new DatabaseHelper();
+
         public DashboardView()
         {
             // Validate the session
@@ -22,32 +28,36 @@ namespace EDUGuard_DesktopApp.Views
             InitializeComponent();
             LoadUserProfile();
         }
+
+        /// <summary>
+        /// Logs out the current user.
+        /// </summary>
         private void LogoutButton_Click(object sender, RoutedEventArgs e)
         {
-            // Confirm logout
             var result = MessageBox.Show("Are you sure you want to log out?", "Logout Confirmation",
                                          MessageBoxButton.YesNo, MessageBoxImage.Question);
 
             if (result == MessageBoxResult.Yes)
             {
-                // Clear session
                 SessionManager.EndSession();
-
-                // Close current window
                 this.Close();
-
-                // Navigate back to Login Window
                 var mainWindow = new MainWindow();
                 mainWindow.Show();
             }
         }
 
+        /// <summary>
+        /// Opens Settings.
+        /// </summary>
         private void SettingsButton_Click(object sender, RoutedEventArgs e)
         {
             MessageBox.Show("Settings functionality is under development.", "Settings",
                             MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        /// <summary>
+        /// Loads the current user's profile details.
+        /// </summary>
         private void LoadUserProfile()
         {
             var user = SessionManager.CurrentUser;
@@ -61,6 +71,9 @@ namespace EDUGuard_DesktopApp.Views
             }
         }
 
+        /// <summary>
+        /// Updates the current user's profile.
+        /// </summary>
         private void UpdateButton_Click(object sender, RoutedEventArgs e)
         {
             var updatedUser = SessionManager.CurrentUser;
@@ -68,7 +81,6 @@ namespace EDUGuard_DesktopApp.Views
             updatedUser.LastName = LastNameTextBox.Text;
             updatedUser.ContactNumber = ContactNumberTextBox.Text;
 
-            // Parse Age
             if (int.TryParse(AgeTextBox.Text, out int updatedAge))
             {
                 updatedUser.Age = updatedAge;
@@ -79,7 +91,6 @@ namespace EDUGuard_DesktopApp.Views
                 return;
             }
 
-            // Update user in the database
             var filter = Builders<User>.Filter.Eq(u => u.Email, updatedUser.Email);
             var update = Builders<User>.Update
                 .Set(u => u.FirstName, updatedUser.FirstName)
@@ -92,9 +103,11 @@ namespace EDUGuard_DesktopApp.Views
             MessageBox.Show("Profile updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
+        /// <summary>
+        /// Deletes the current user's account.
+        /// </summary>
         private void DeleteButton_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Profile deleted successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             var result = MessageBox.Show("Are you sure you want to delete your account? This action is irreversible.",
                                          "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
 
@@ -105,12 +118,145 @@ namespace EDUGuard_DesktopApp.Views
 
                 MessageBox.Show("Account deleted successfully.", "Account Deleted", MessageBoxButton.OK, MessageBoxImage.Information);
 
-                // End session and return to login
                 SessionManager.EndSession();
                 Close();
                 var loginView = new MainWindow();
                 loginView.Show();
             }
         }
+
+        /// <summary>
+        /// Runs the Python script for posture detection.
+        /// </summary>
+        //private void RunPostureDetection_Click(object sender, RoutedEventArgs e)
+        //{
+        //    var processInfo = new ProcessStartInfo
+        //    {
+        //        FileName = @"C:\Users\chamu\AppData\Local\Microsoft\WindowsApps\python.exe",
+        //        Arguments = @"C:\Users\chamu\source\repos\EDUGuard_DesktopApp\EDUGuard_DesktopApp\PyFiles\posture_detection.py",
+        //        UseShellExecute = false,
+        //        RedirectStandardOutput = true,
+        //        RedirectStandardError = true,
+        //        CreateNoWindow = true
+        //    };
+
+        //    try
+        //    {
+        //        using (var process = Process.Start(processInfo))
+        //        {
+        //            process.WaitForExit();
+
+        //            if (File.Exists("posture_results.json"))
+        //            {
+        //                string json = File.ReadAllText("posture_results.json");
+
+        //                // Deserialize only the posture field
+        //                var postureResults = JsonSerializer.Deserialize<PostureResult[]>(json);
+
+        //                SavePostureResults(postureResults);
+
+        //                MessageBox.Show("Posture Detection Complete! Data saved successfully.", "Success",
+        //                                MessageBoxButton.OK, MessageBoxImage.Information);
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        //    }
+        //}
+
+        private void RunPostureDetection_Click(object sender, RoutedEventArgs e)
+        {
+            var processInfo = new ProcessStartInfo
+            {
+                FileName = @"C:\Users\chamu\AppData\Local\Microsoft\WindowsApps\python.exe",
+                Arguments = @"C:\Users\chamu\source\repos\EDUGuard_DesktopApp\EDUGuard_DesktopApp\PyFiles\posture_detection.py",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            try
+            {
+                using (var process = Process.Start(processInfo))
+                {
+                    process.WaitForExit();
+
+                    if (File.Exists("posture_results.json"))
+                    {
+                        // Read JSON file output
+                        string json = File.ReadAllText("posture_results.json");
+
+                        // Deserialize JSON into an array of strings
+                        var postureResults = JsonSerializer.Deserialize<string[]>(json);
+
+                        // Save results to MongoDB
+                        SavePostureResults(postureResults);
+
+                        MessageBox.Show("Posture Detection Complete! Data saved successfully.", "Success",
+                                        MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+
+        /// <summary>
+        /// Saves posture results to MongoDB.
+        /// </summary>
+        //private void SavePostureResults(String[] results)
+        //{
+        //    var filter = Builders<User>.Filter.Eq(u => u.Email, SessionManager.CurrentUser.Email);
+
+        //    // Only save posture status
+        //    var postureList = results.Select(r => r.Posture).ToList();
+
+        //    var update = Builders<User>.Update.PushEach("PostureData", postureList);
+
+        //    var result = _dbHelper.Users.UpdateOne(filter, update);
+
+        //    if (result.MatchedCount == 0)
+        //    {
+        //        MessageBox.Show("User not found!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        //    }
+        //    else
+        //    {
+        //        MessageBox.Show("Posture results saved successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+        //    }
+        //}
+
+        private void SavePostureResults(string[] results)
+        {
+            var filter = Builders<User>.Filter.Eq(u => u.Email, SessionManager.CurrentUser.Email);
+
+            // Push each posture status as a string into MongoDB
+            var update = Builders<User>.Update.PushEach("PostureData", results);
+
+            var result = _dbHelper.Users.UpdateOne(filter, update);
+
+            if (result.MatchedCount == 0)
+            {
+                MessageBox.Show("User not found!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+            else
+            {
+                MessageBox.Show("Posture results saved successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+        }
+
     }
+
+    /// <summary>
+    /// Represents the posture result.
+    /// </summary>
+    //public class PostureResult
+    //{
+    //    public string Posture { get; set; }
+    //}
 }
