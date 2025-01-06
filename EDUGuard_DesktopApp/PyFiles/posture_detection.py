@@ -100,7 +100,6 @@ try:
             current_time = time.time()
             if current_time - last_saved_time >= interval:
                 current_batch.append(posture)
-                print(f"Saved: {posture}")
                 last_saved_time = current_time
 
             # Every 2 minutes, finalize the current batch
@@ -111,14 +110,13 @@ try:
                 batch_start_time = current_time
 
         # Show the frame
-        cv2.imshow('Posture Detection', frame)
+        # cv2.imshow('Posture Detection', frame)
 
         # Show current rolling results
-        print(list(posture_results))
+        # print(list(posture_results))
 
         # Exit on pressing 'q'
         if cv2.waitKey(10) & 0xFF == ord('q'):
-            print("Final Posture Results:", list(posture_results))
             with open("posture_results.json", "w") as file:
                 json.dump(list(posture_results), file, indent=4)
             break
@@ -127,7 +125,6 @@ finally:
     # Save final results before exit
     if current_batch:
         posture_results.append(current_batch)
-        print(f"Final batch saved with {len(current_batch)} entries.")
     with open("posture_results.json", "w") as file:
         json.dump(list(posture_results), file, indent=4)
 

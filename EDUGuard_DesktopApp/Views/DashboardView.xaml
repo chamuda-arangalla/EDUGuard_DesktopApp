@@ -29,12 +29,23 @@
         <TabControl Grid.Row="1">
             <TabItem Header="Dashboard">
                 <Grid>
-                    <TextBlock Text="Welcome to the Dashboard!" FontSize="20" HorizontalAlignment="Center" VerticalAlignment="Center" />
-
+                    
                     <TextBlock Text="Check the posture" FontSize="20" HorizontalAlignment="Left" VerticalAlignment="Center" />
-
+                   <!--
                     <Button Content="Start Posture Detection" Width="200" Height="40" Margin="10"
                             Click="RunPostureDetection_Click" />
+                    -->
+                    <Grid>
+                        <Button x:Name="RunPostureDetection"
+                                Content="Start"
+                                Width="150"
+                                Height="50"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Click="RunPostureDetection_Click"
+                                Background="LightGreen"
+                                FontSize="16"/>
+                    </Grid>
                 </Grid>
             </TabItem>
             <TabItem Header="Reports">
