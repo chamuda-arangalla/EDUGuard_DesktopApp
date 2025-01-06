@@ -226,65 +226,6 @@ namespace EDUGuard_DesktopApp.Views
             }
         }
 
-        //private void StartPythonProcess()
-        //{
-        //    var processInfo = new ProcessStartInfo
-        //    {
-        //        FileName = @"C:\Users\chamu\AppData\Local\Microsoft\WindowsApps\python.exe",
-        //        Arguments = @"C:\Users\chamu\source\repos\EDUGuard_DesktopApp\EDUGuard_DesktopApp\PyFiles\posture_detection.py",
-        //        UseShellExecute = false, // Required for redirection
-        //        RedirectStandardOutput = true, // Capture Python output
-        //        RedirectStandardError = true,  // Capture Python errors
-        //        CreateNoWindow = true // Run in the background
-        //    };
-
-        //    try
-        //    {
-        //        _pythonProcess = Process.Start(processInfo);
-
-        //        if (_pythonProcess == null)
-        //        {
-        //            MessageBox.Show("Failed to start the Python process.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //            return;
-        //        }
-
-        //        _isRunning = true;
-        //        UpdateButtonUI(_isRunning);
-
-        //        // Read standard output asynchronously
-        //        Task.Run(() => ReadStreamAsync(_pythonProcess.StandardOutput, line =>
-        //        {
-        //            Dispatcher.Invoke(() => Console.WriteLine($"Python Output: {line}"));
-        //        }));
-
-        //        // Read standard error asynchronously
-        //        Task.Run(() => ReadStreamAsync(_pythonProcess.StandardError, line =>
-        //        {
-        //            Dispatcher.Invoke(() => Console.WriteLine($"Python Error: {line}"));
-        //        }));
-
-        //        // Monitor process exit asynchronously
-        //        Task.Run(() =>
-        //        {
-        //            _pythonProcess.WaitForExit();
-        //            Dispatcher.Invoke(() =>
-        //            {
-        //                _isRunning = false;
-        //                UpdateButtonUI(_isRunning);
-        //                MessageBox.Show("Python process has exited.", "Process Complete", MessageBoxButton.OK, MessageBoxImage.Information);
-        //            });
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"An error occurred while starting the Python process: {ex.Message}", "Error",
-        //                        MessageBoxButton.OK, MessageBoxImage.Error);
-        //    }
-        //}
-
-
-        // Helper Method to Read Stream Line by Line Asynchronously
-
         private void StartPythonProcess()
         {
             var processInfo = new ProcessStartInfo
