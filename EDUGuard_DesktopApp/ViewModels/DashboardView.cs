@@ -7,6 +7,7 @@ using EDUGuard_DesktopApp.Models;
 using EDUGuard_DesktopApp.Utilities;
 using MongoDB.Driver;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace EDUGuard_DesktopApp.Views
 {
@@ -128,43 +129,7 @@ namespace EDUGuard_DesktopApp.Views
         /// <summary>
         /// Runs the Python script for posture detection.
         /// </summary>
-        //private void RunPostureDetection_Click(object sender, RoutedEventArgs e)
-        //{
-        //    var processInfo = new ProcessStartInfo
-        //    {
-        //        FileName = @"C:\Users\chamu\AppData\Local\Microsoft\WindowsApps\python.exe",
-        //        Arguments = @"C:\Users\chamu\source\repos\EDUGuard_DesktopApp\EDUGuard_DesktopApp\PyFiles\posture_detection.py",
-        //        UseShellExecute = false,
-        //        RedirectStandardOutput = true,
-        //        RedirectStandardError = true,
-        //        CreateNoWindow = true
-        //    };
-
-        //    try
-        //    {
-        //        using (var process = Process.Start(processInfo))
-        //        {
-        //            process.WaitForExit();
-
-        //            if (File.Exists("posture_results.json"))
-        //            {
-        //                string json = File.ReadAllText("posture_results.json");
-
-        //                // Deserialize only the posture field
-        //                var postureResults = JsonSerializer.Deserialize<PostureResult[]>(json);
-
-        //                SavePostureResults(postureResults);
-
-        //                MessageBox.Show("Posture Detection Complete! Data saved successfully.", "Success",
-        //                                MessageBoxButton.OK, MessageBoxImage.Information);
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //    }
-        //}
+      
 
         private void RunPostureDetection_Click(object sender, RoutedEventArgs e)
         {
@@ -182,21 +147,58 @@ namespace EDUGuard_DesktopApp.Views
             {
                 using (var process = Process.Start(processInfo))
                 {
+                    if (process == null)
+                    {
+                        MessageBox.Show("Failed to start the Python process.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        return;
+                    }
+
+                    // Read output and error asynchronously
+                    var outputTask = process.StandardOutput.ReadToEndAsync();
+                    var errorTask = process.StandardError.ReadToEndAsync();
+
                     process.WaitForExit();
+
+                    string output = outputTask.Result;
+                    string error = errorTask.Result;
+
+                    if (!string.IsNullOrEmpty(error))
+                    {
+                        MessageBox.Show($"Python Error:\n{error}", "Python Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
 
                     if (File.Exists("posture_results.json"))
                     {
-                        // Read JSON file output
                         string json = File.ReadAllText("posture_results.json");
 
-                        // Deserialize JSON into an array of strings
-                        var postureResults = JsonSerializer.Deserialize<string[]>(json);
+                        try
+                        {
+                            // Deserialize into List<List<string>>
+                            var postureResults = JsonSerializer.Deserialize<List<List<string>>>(json);
 
-                        // Save results to MongoDB
-                        SavePostureResults(postureResults);
+                            if (postureResults != null && postureResults.Any(batch => batch.Count > 0))
+                            {
+                                SavePostureResults(postureResults);
 
-                        MessageBox.Show("Posture Detection Complete! Data saved successfully.", "Success",
-                                        MessageBoxButton.OK, MessageBoxImage.Information);
+                                MessageBox.Show("Posture Detection Complete! Data saved successfully.", "Success",
+                                                MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
+                            else
+                            {
+                                MessageBox.Show("No valid posture data found in the JSON file.", "Warning",
+                                                MessageBoxButton.OK, MessageBoxImage.Warning);
+                            }
+                        }
+                        catch (JsonException ex)
+                        {
+                            MessageBox.Show($"JSON Parsing Error: {ex.Message}\nRaw JSON Content:\n{json}", "Error",
+                                            MessageBoxButton.OK, MessageBoxImage.Error);
+                        }
+                    }
+                    else
+                    {
+                        MessageBox.Show("Posture results file not found.", "Error",
+                                        MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
             }
@@ -207,36 +209,24 @@ namespace EDUGuard_DesktopApp.Views
         }
 
 
+
+
+
         /// <summary>
         /// Saves posture results to MongoDB.
         /// </summary>
-        //private void SavePostureResults(String[] results)
-        //{
-        //    var filter = Builders<User>.Filter.Eq(u => u.Email, SessionManager.CurrentUser.Email);
-
-        //    // Only save posture status
-        //    var postureList = results.Select(r => r.Posture).ToList();
-
-        //    var update = Builders<User>.Update.PushEach("PostureData", postureList);
-
-        //    var result = _dbHelper.Users.UpdateOne(filter, update);
-
-        //    if (result.MatchedCount == 0)
-        //    {
-        //        MessageBox.Show("User not found!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //    }
-        //    else
-        //    {
-        //        MessageBox.Show("Posture results saved successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-        //    }
-        //}
-
-        private void SavePostureResults(string[] results)
+       private void SavePostureResults(List<List<string>> batches)
         {
             var filter = Builders<User>.Filter.Eq(u => u.Email, SessionManager.CurrentUser.Email);
 
-            // Push each posture status as a string into MongoDB
-            var update = Builders<User>.Update.PushEach("PostureData", results);
+            if (batches == null || batches.Count == 0)
+            {
+                MessageBox.Show("No valid posture data to save!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Push the entire list of batches into the PostureData array
+            var update = Builders<User>.Update.PushEach("PostureData", batches);
 
             var result = _dbHelper.Users.UpdateOne(filter, update);
 
@@ -244,19 +234,21 @@ namespace EDUGuard_DesktopApp.Views
             {
                 MessageBox.Show("User not found!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+            else if (result.ModifiedCount == 0)
+            {
+                MessageBox.Show("Failed to save posture results!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
             else
             {
                 MessageBox.Show("Posture results saved successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
             }
         }
 
+
+
+
+
     }
 
-    /// <summary>
-    /// Represents the posture result.
-    /// </summary>
-    //public class PostureResult
-    //{
-    //    public string Posture { get; set; }
-    //}
+    
 }

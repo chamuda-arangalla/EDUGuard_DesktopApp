@@ -21,7 +21,8 @@ namespace EDUGuard_DesktopApp.Models
         public string ContactNumber { get; set; }
 
         // field for Posture Data 
-        public List<String> PostureData { get; set; } = new List<String>();
+        public List<List<string>> PostureData { get; set; } = new List<List<string>>();
+
     }
 
 }
