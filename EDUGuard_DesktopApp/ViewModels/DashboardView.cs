@@ -1,13 +1,10 @@
 ﻿using System.Diagnostics;
 using System;
 using System.IO;
-using System.Text.Json;
 using System.Windows;
 using EDUGuard_DesktopApp.Models;
 using EDUGuard_DesktopApp.Utilities;
 using MongoDB.Driver;
-using System.Linq;
-using System.Collections.Generic;
 using System.Windows.Media;
 using System.Threading.Tasks;
 
@@ -18,6 +15,7 @@ namespace EDUGuard_DesktopApp.Views
         private readonly DatabaseHelper _dbHelper = new DatabaseHelper();
         private Process _pythonProcess; // Tracks the Python process
         private bool _isRunning = false; // Tracks the state (Start/Stop)
+
         public DashboardView()
         {
             // Validate the session
@@ -132,88 +130,6 @@ namespace EDUGuard_DesktopApp.Views
         /// <summary>
         /// Runs the Python script for posture detection.
         /// </summary>
-
-
-        //private void RunPostureDetection_Click(object sender, RoutedEventArgs e)
-        //{
-        //    var processInfo = new ProcessStartInfo
-        //    {
-        //        FileName = @"C:\Users\chamu\AppData\Local\Microsoft\WindowsApps\python.exe",
-        //        Arguments = @"C:\Users\chamu\source\repos\EDUGuard_DesktopApp\EDUGuard_DesktopApp\PyFiles\posture_detection.py",
-        //        UseShellExecute = false,
-        //        RedirectStandardOutput = true,
-        //        RedirectStandardError = true,
-        //        CreateNoWindow = true
-        //    };
-
-        //    try
-        //    {
-        //        using (var process = Process.Start(processInfo))
-        //        {
-        //            if (process == null)
-        //            {
-        //                MessageBox.Show("Failed to start the Python process.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //                return;
-        //            }
-
-        //            // Read output and error asynchronously
-        //            var outputTask = process.StandardOutput.ReadToEndAsync();
-        //            var errorTask = process.StandardError.ReadToEndAsync();
-
-        //            process.WaitForExit();
-
-        //            string output = outputTask.Result;
-        //            string error = errorTask.Result;
-
-        //            if (!string.IsNullOrEmpty(error))
-        //            {
-        //                MessageBox.Show($"Python Error:\n{error}", "Python Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //            }
-
-        //            if (File.Exists("posture_results.json"))
-        //            {
-        //                string json = File.ReadAllText("posture_results.json");
-
-        //                try
-        //                {
-        //                    // Deserialize into List<List<string>>
-        //                    var postureResults = JsonSerializer.Deserialize<List<List<string>>>(json);
-
-        //                    if (postureResults != null && postureResults.Any(batch => batch.Count > 0))
-        //                    {
-        //                        SavePostureResults(postureResults);
-
-        //                        MessageBox.Show("Posture Detection Complete! Data saved successfully.", "Success",
-        //                                        MessageBoxButton.OK, MessageBoxImage.Information);
-        //                    }
-        //                    else
-        //                    {
-        //                        MessageBox.Show("No valid posture data found in the JSON file.", "Warning",
-        //                                        MessageBoxButton.OK, MessageBoxImage.Warning);
-        //                    }
-        //                }
-        //                catch (JsonException ex)
-        //                {
-        //                    MessageBox.Show($"JSON Parsing Error: {ex.Message}\nRaw JSON Content:\n{json}", "Error",
-        //                                    MessageBoxButton.OK, MessageBoxImage.Error);
-        //                }
-        //            }
-        //            else
-        //            {
-        //                MessageBox.Show("Posture results file not found.", "Error",
-        //                                MessageBoxButton.OK, MessageBoxImage.Error);
-        //            }
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        MessageBox.Show($"An error occurred: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //    }
-        //}
-
-
-
-
         private void RunPostureDetection_Click(object sender, RoutedEventArgs e)
         {
             if (!_isRunning)
@@ -228,10 +144,12 @@ namespace EDUGuard_DesktopApp.Views
 
         private void StartPythonProcess()
         {
+            var userEmail = SessionManager.CurrentUser.Email; // Get the authenticated user's email from the session
+
             var processInfo = new ProcessStartInfo
             {
-                FileName = @"C:\Users\chamu\AppData\Local\Microsoft\WindowsApps\python.exe",
-                Arguments = @"C:\Users\chamu\source\repos\EDUGuard_DesktopApp\EDUGuard_DesktopApp\PyFiles\posture_detection.py",
+                FileName = "python",
+                Arguments = $"C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\posture_detection.py {userEmail}",
                 UseShellExecute = false, // Required for redirection
                 RedirectStandardOutput = true, // Capture Python output
                 RedirectStandardError = true,  // Capture Python errors
@@ -251,22 +169,16 @@ namespace EDUGuard_DesktopApp.Views
                 _isRunning = true;
                 UpdateButtonUI(_isRunning);
 
-                // 📝 Accumulate Standard Output
-                string outputText = string.Empty;
-                string errorText = string.Empty;
-
                 Task.Run(() => ReadStreamAsync(_pythonProcess.StandardOutput, line =>
                 {
-                    outputText += $"[Output] {line}\n";
+                    Dispatcher.Invoke(() => Console.WriteLine($"[Output]: {line}"));
                 }));
 
-                // ❗ Accumulate Standard Error
                 Task.Run(() => ReadStreamAsync(_pythonProcess.StandardError, line =>
                 {
-                    errorText += $"[Error] {line}\n";
+                    Dispatcher.Invoke(() => Console.WriteLine($"[Error]: {line}"));
                 }));
 
-                // ✅ Monitor process exit asynchronously
                 Task.Run(() =>
                 {
                     _pythonProcess.WaitForExit();
@@ -274,25 +186,15 @@ namespace EDUGuard_DesktopApp.Views
                     {
                         _isRunning = false;
                         UpdateButtonUI(_isRunning);
-
-                        if (!string.IsNullOrEmpty(errorText))
-                        {
-                            MessageBox.Show($"Python Errors:\n{errorText}", "Python Errors", MessageBoxButton.OK, MessageBoxImage.Error);
-                        }
-                        else
-                        {
-                            MessageBox.Show("Python process completed successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                        }
+                        MessageBox.Show("Python process completed successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
                     });
                 });
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"An error occurred while starting the Python process: {ex.Message}", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"An error occurred while starting the Python process: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
 
         private Task ReadStreamAsync(StreamReader reader, Action<string> onLineRead)
         {
@@ -316,9 +218,6 @@ namespace EDUGuard_DesktopApp.Views
             });
         }
 
-
-
-
         private void StopPythonProcess()
         {
             try
@@ -332,9 +231,6 @@ namespace EDUGuard_DesktopApp.Views
                 _isRunning = false;
                 UpdateButtonUI(_isRunning);
 
-                MessageBox.Show("Python process stopped successfully.", "Stopped", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                ProcessPostureResults();
             }
             catch (Exception ex)
             {
@@ -342,7 +238,6 @@ namespace EDUGuard_DesktopApp.Views
             }
         }
 
-        //Model button UI
         private void UpdateButtonUI(bool isRunning)
         {
             if (isRunning)
@@ -358,75 +253,5 @@ namespace EDUGuard_DesktopApp.Views
                 RunPostureDetection.Foreground = Brushes.Black;
             }
         }
-
-        private void ProcessPostureResults()
-        {
-            if (File.Exists("posture_results.json"))
-            {
-                string json = File.ReadAllText("posture_results.json");
-
-                try
-                {
-                    var postureResults = JsonSerializer.Deserialize<List<List<string>>>(json);
-
-                    if (postureResults != null && postureResults.Any(batch => batch.Count > 0))
-                    {
-                        SavePostureResults(postureResults);
-                        MessageBox.Show("Posture Detection Complete! Data saved successfully.", "Success",
-                                        MessageBoxButton.OK, MessageBoxImage.Information);
-                    }
-                    else
-                    {
-                        MessageBox.Show("No valid posture data found in the JSON file.", "Warning",
-                                        MessageBoxButton.OK, MessageBoxImage.Warning);
-                    }
-                }
-                catch (JsonException ex)
-                {
-                    MessageBox.Show($"JSON Parsing Error: {ex.Message}\nRaw JSON Content:\n{json}", "Error",
-                                    MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-            else
-            {
-                MessageBox.Show("Posture results file not found.", "Error",
-                                MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        /// <summary>
-        /// Saves posture results to MongoDB.
-        /// </summary>
-        private void SavePostureResults(List<List<string>> batches)
-        {
-            var filter = Builders<User>.Filter.Eq(u => u.Email, SessionManager.CurrentUser.Email);
-
-            if (batches == null || batches.Count == 0)
-            {
-                MessageBox.Show("No valid posture data to save!", "Warning", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
-            // Push the entire list of batches into the PostureData array
-            var update = Builders<User>.Update.PushEach("PostureData", batches);
-
-            var result = _dbHelper.Users.UpdateOne(filter, update);
-
-            if (result.MatchedCount == 0)
-            {
-                MessageBox.Show("User not found!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            else if (result.ModifiedCount == 0)
-            {
-                MessageBox.Show("Failed to save posture results!", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-            else
-            {
-                MessageBox.Show("Posture results saved successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-            }
-        }
-
     }
-
-    
 }

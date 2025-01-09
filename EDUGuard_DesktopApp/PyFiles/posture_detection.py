@@ -5,6 +5,21 @@ import joblib
 import json
 import time
 from collections import deque
+from pymongo import MongoClient
+import sys
+
+# MongoDB connection setup
+MONGO_URI = "mongodb+srv://myUser:myPassword123@cluster0.qk0epky.mongodb.net/?retryWrites=true&w=majority"
+client = MongoClient(MONGO_URI)
+db = client["EDUGuardDB"]  # Replace with your database name
+users_collection = db["Users"]  # Replace with your collection name
+
+# Get the authenticated user email from command-line arguments
+if len(sys.argv) < 2:
+    print("Error: No email provided as an argument.")
+    sys.exit(1)
+
+USER_EMAIL = sys.argv[1]  # Get the user email from the arguments
 
 # Load the .pkl model
 model = joblib.load(r'C:\Users\chamu\source\repos\EDUGuard_DesktopApp\EDUGuard_DesktopApp\PyFiles\posture_classifier.pkl')
@@ -26,13 +41,31 @@ def calculate_angle(vector1, vector2):
     angle = np.arccos(dot_product / (magnitude1 * magnitude2))
     return np.degrees(angle)
 
+# Function to update MongoDB with live posture data
+def update_posture_in_mongodb(email, batch):
+    try:
+        # Find the user by email
+        user = users_collection.find_one({"Email": email})
+        if not user:
+            print(f"User with email {email} not found!")
+            return
+
+        # Update posture data by appending the batch as a new list
+        users_collection.update_one(
+            {"Email": email},
+            {"$push": {"PostureData": batch}}
+        )
+        print(f"Batch updated to MongoDB: {batch}")
+    except Exception as e:
+        print(f"Error updating posture data: {e}")
+
 # Initialize webcam
 cap = cv2.VideoCapture(0)
 
 # Timer Setup
 last_saved_time = time.time()
-interval = 6  # Save data every 20 seconds
-batch_interval = 30  # Group data every 2 minutes
+interval = 6  # Save data every 6 seconds
+batch_interval = 30  # Upload batch data every 30 seconds
 batch_start_time = time.time()
 
 try:
@@ -96,37 +129,31 @@ try:
             cv2.putText(frame, f"Posture: {posture}", (50, 50),
                         cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2, cv2.LINE_AA)
 
-            # Save posture result every 20 seconds
+            # Save posture result to the current batch every 6 seconds
             current_time = time.time()
             if current_time - last_saved_time >= interval:
                 current_batch.append(posture)
+                print(f"Saved posture: {posture}")
                 last_saved_time = current_time
 
-            # Every 2 minutes, finalize the current batch
-            if current_time - batch_start_time >= batch_interval:
-                posture_results.append(current_batch)
-                print(f"2-minute batch saved with {len(current_batch)} entries.")
-                current_batch = []  # Reset for the next batch
-                batch_start_time = current_time
+        # Upload batch to MongoDB every 30 seconds
+        if current_time - batch_start_time >= batch_interval:
+            if current_batch:  # Check if the batch is not empty
+                update_posture_in_mongodb(USER_EMAIL, current_batch)
+                current_batch = []  # Reset batch
+            batch_start_time = current_time
 
         # Show the frame
-        # cv2.imshow('Posture Detection', frame)
-
-        # Show current rolling results
-        # print(list(posture_results))
+        cv2.imshow('Posture Detection', frame)
 
         # Exit on pressing 'q'
         if cv2.waitKey(10) & 0xFF == ord('q'):
-            with open("posture_results.json", "w") as file:
-                json.dump(list(posture_results), file, indent=4)
             break
 
 finally:
-    # Save final results before exit
+    # Save any remaining data to MongoDB before exit
     if current_batch:
-        posture_results.append(current_batch)
-    with open("posture_results.json", "w") as file:
-        json.dump(list(posture_results), file, indent=4)
+        update_posture_in_mongodb(USER_EMAIL, current_batch)
 
     cap.release()
     cv2.destroyAllWindows()
