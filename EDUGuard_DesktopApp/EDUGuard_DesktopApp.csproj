@@ -240,7 +240,9 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
+    <None Include="PyFiles\models\posture_classifier.pkl" />
     <None Include="PyFiles\posture_classifier.pkl" />
+    <None Include="PyFiles\utils\__pycache__\mongodb_util.cpython-312.pyc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
@@ -269,6 +271,9 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="PyFiles\posture_detection.py" />
+    <Content Include="PyFiles\posture_detection1.py" />
+    <Content Include="PyFiles\utils\mongodb_util.py" />
+    <Content Include="PyFiles\webcam_server.py" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

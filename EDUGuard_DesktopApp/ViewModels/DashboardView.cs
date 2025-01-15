@@ -1,24 +1,27 @@
-﻿using System.Diagnostics;
-using System;
+﻿using System;
+using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+using System.Threading.Tasks;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 using EDUGuard_DesktopApp.Models;
 using EDUGuard_DesktopApp.Utilities;
 using MongoDB.Driver;
-using System.Windows.Media;
-using System.Threading.Tasks;
 
 namespace EDUGuard_DesktopApp.Views
 {
     public partial class DashboardView : Window
     {
         private readonly DatabaseHelper _dbHelper = new DatabaseHelper();
-        private Process _pythonProcess; // Tracks the Python process
-        private bool _isRunning = false; // Tracks the state (Start/Stop)
+        private readonly Dictionary<string, Process> _modelProcesses = new Dictionary<string, Process>();
+        private Process _webcamServerProcess;
+        private bool _isModel1Running = false, _isModel2Running = false, _isModel3Running = false, _isModel4Running = false;
+        private readonly string _currentUserEmail; // Store the current user's email
 
         public DashboardView()
         {
-            // Validate the session
             if (!SessionManager.IsLoggedIn)
             {
                 MessageBox.Show("You are not authorized to access this window. Please log in.", "Access Denied",
@@ -28,38 +31,18 @@ namespace EDUGuard_DesktopApp.Views
             }
 
             InitializeComponent();
+            StartWebcamServer();
             LoadUserProfile();
-        }
 
-        /// <summary>
-        /// Logs out the current user.
-        /// </summary>
-        private void LogoutButton_Click(object sender, RoutedEventArgs e)
-        {
-            var result = MessageBox.Show("Are you sure you want to log out?", "Logout Confirmation",
-                                         MessageBoxButton.YesNo, MessageBoxImage.Question);
-
-            if (result == MessageBoxResult.Yes)
+            // Get the current user's email
+            _currentUserEmail = SessionManager.CurrentUser?.Email;
+            if (string.IsNullOrEmpty(_currentUserEmail))
             {
-                SessionManager.EndSession();
-                this.Close();
-                var mainWindow = new MainWindow();
-                mainWindow.Show();
+                MessageBox.Show("Failed to retrieve the user's email. Please log in again.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Close();
             }
         }
 
-        /// <summary>
-        /// Opens Settings.
-        /// </summary>
-        private void SettingsButton_Click(object sender, RoutedEventArgs e)
-        {
-            MessageBox.Show("Settings functionality is under development.", "Settings",
-                            MessageBoxButton.OK, MessageBoxImage.Information);
-        }
-
-        /// <summary>
-        /// Loads the current user's profile details.
-        /// </summary>
         private void LoadUserProfile()
         {
             var user = SessionManager.CurrentUser;
@@ -71,6 +54,150 @@ namespace EDUGuard_DesktopApp.Views
                 AgeTextBox.Text = user.Age.ToString();
                 ContactNumberTextBox.Text = user.ContactNumber;
             }
+        }
+
+        private void StartWebcamServer()
+        {
+            var processInfo = new ProcessStartInfo
+            {
+                FileName = "python",
+                Arguments = "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\webcam_server.py",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            try
+            {
+                _webcamServerProcess = Process.Start(processInfo);
+                if (_webcamServerProcess == null)
+                {
+                    MessageBox.Show("Failed to start the webcam server.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error starting the webcam server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ToggleModel(string modelName, ref bool isRunning, Button modelButton, string scriptPath)
+        {
+            if (!isRunning)
+            {
+                StartModel(modelName, ref isRunning, modelButton, scriptPath);
+            }
+            else
+            {
+                StopModel(modelName, ref isRunning, modelButton);
+            }
+        }
+
+        private void StartModel(string modelName, ref bool isRunning, Button modelButton, string scriptPath)
+        {
+            var processInfo = new ProcessStartInfo
+            {
+                FileName = "python",
+                Arguments = $"{scriptPath} {_currentUserEmail}",
+                UseShellExecute = false,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                CreateNoWindow = true
+            };
+
+            try
+            {
+                var process = Process.Start(processInfo);
+                if (process == null)
+                {
+                    MessageBox.Show($"Failed to start {modelName}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                _modelProcesses[modelName] = process;
+                UpdateButtonUI(modelButton, true, $"Start {modelName}", $"Stop {modelName}");
+
+                Task.Run(() =>
+                {
+                    ReadStreamAsync(process.StandardOutput, line =>
+                    {
+                        Dispatcher.Invoke(() => Console.WriteLine($"[{modelName} Output]: {line}"));
+                    });
+                    ReadStreamAsync(process.StandardError, line =>
+                    {
+                        Dispatcher.Invoke(() => Console.WriteLine($"[{modelName} Error]: {line}"));
+                    });
+                });
+
+                isRunning = true; // Correctly set the running state
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error starting {modelName}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void StopModel(string modelName, ref bool isRunning, Button modelButton)
+        {
+            try
+            {
+                if (_modelProcesses.ContainsKey(modelName))
+                {
+                    var process = _modelProcesses[modelName];
+                    if (!process.HasExited)
+                    {
+                        process.Kill();
+                        process.Dispose();
+                    }
+                    _modelProcesses.Remove(modelName);
+
+                    UpdateButtonUI(modelButton, false, $"Start {modelName}", $"Stop {modelName}");
+                    isRunning = false; // Correctly update the running state
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error stopping {modelName}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void UpdateButtonUI(Button button, bool isRunning, string startText, string stopText)
+        {
+            button.Content = isRunning ? stopText : startText;
+            button.Background = isRunning ? Brushes.LightCoral : Brushes.LightGreen;
+            button.Foreground = isRunning ? Brushes.White : Brushes.Black;
+        }
+
+        /// <summary>
+        /// Deletes the current user's account.
+        /// </summary>
+        private void DeleteButton_Click(object sender, RoutedEventArgs e)
+        {
+            var result = MessageBox.Show("Are you sure you want to delete your account? This action is irreversible.",
+                                         "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+
+            if (result == MessageBoxResult.Yes)
+            {
+                var filter = Builders<User>.Filter.Eq(u => u.Email, SessionManager.CurrentUser.Email);
+                _dbHelper.Users.DeleteOne(filter);
+
+                MessageBox.Show("Account deleted successfully.", "Account Deleted", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                SessionManager.EndSession();
+                Close();
+                var loginView = new MainWindow();
+                loginView.Show();
+            }
+        }
+
+        /// <summary>
+        /// Opens Settings.
+        /// </summary>
+        private void SettingsButton_Click(object sender, RoutedEventArgs e)
+        {
+            MessageBox.Show("Settings functionality is under development.", "Settings",
+                            MessageBoxButton.OK, MessageBoxImage.Information);
         }
 
         /// <summary>
@@ -104,98 +231,6 @@ namespace EDUGuard_DesktopApp.Views
 
             MessageBox.Show("Profile updated successfully!", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
         }
-
-        /// <summary>
-        /// Deletes the current user's account.
-        /// </summary>
-        private void DeleteButton_Click(object sender, RoutedEventArgs e)
-        {
-            var result = MessageBox.Show("Are you sure you want to delete your account? This action is irreversible.",
-                                         "Confirm Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-            if (result == MessageBoxResult.Yes)
-            {
-                var filter = Builders<User>.Filter.Eq(u => u.Email, SessionManager.CurrentUser.Email);
-                _dbHelper.Users.DeleteOne(filter);
-
-                MessageBox.Show("Account deleted successfully.", "Account Deleted", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                SessionManager.EndSession();
-                Close();
-                var loginView = new MainWindow();
-                loginView.Show();
-            }
-        }
-
-        /// <summary>
-        /// Runs the Python script for posture detection.
-        /// </summary>
-        private void RunPostureDetection_Click(object sender, RoutedEventArgs e)
-        {
-            if (!_isRunning)
-            {
-                StartPythonProcess();
-            }
-            else
-            {
-                StopPythonProcess();
-            }
-        }
-
-        private void StartPythonProcess()
-        {
-            var userEmail = SessionManager.CurrentUser.Email; // Get the authenticated user's email from the session
-
-            var processInfo = new ProcessStartInfo
-            {
-                FileName = "python",
-                Arguments = $"C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\posture_detection.py {userEmail}",
-                UseShellExecute = false, // Required for redirection
-                RedirectStandardOutput = true, // Capture Python output
-                RedirectStandardError = true,  // Capture Python errors
-                CreateNoWindow = true // Run in the background
-            };
-
-            try
-            {
-                _pythonProcess = Process.Start(processInfo);
-
-                if (_pythonProcess == null)
-                {
-                    MessageBox.Show("Failed to start the Python process.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    return;
-                }
-
-                _isRunning = true;
-                UpdateButtonUI(_isRunning);
-
-                Task.Run(() => ReadStreamAsync(_pythonProcess.StandardOutput, line =>
-                {
-                    Dispatcher.Invoke(() => Console.WriteLine($"[Output]: {line}"));
-                }));
-
-                Task.Run(() => ReadStreamAsync(_pythonProcess.StandardError, line =>
-                {
-                    Dispatcher.Invoke(() => Console.WriteLine($"[Error]: {line}"));
-                }));
-
-                Task.Run(() =>
-                {
-                    _pythonProcess.WaitForExit();
-                    Dispatcher.Invoke(() =>
-                    {
-                        _isRunning = false;
-                        UpdateButtonUI(_isRunning);
-                        MessageBox.Show("Python process completed successfully.", "Success", MessageBoxButton.OK, MessageBoxImage.Information);
-                    });
-                });
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"An error occurred while starting the Python process: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
         private Task ReadStreamAsync(StreamReader reader, Action<string> onLineRead)
         {
             return Task.Run(async () =>
@@ -205,52 +240,89 @@ namespace EDUGuard_DesktopApp.Views
                     string line;
                     while ((line = await reader.ReadLineAsync()) != null)
                     {
-                        onLineRead(line); // Collect lines without invoking Dispatcher
+                        onLineRead(line);
                     }
                 }
                 catch (Exception ex)
                 {
                     Dispatcher.Invoke(() =>
                     {
-                        MessageBox.Show($"Error reading stream: {ex.Message}", "Stream Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                        MessageBox.Show($"Stream read error: {ex.Message}", "Stream Error", MessageBoxButton.OK, MessageBoxImage.Error);
                     });
                 }
             });
         }
 
-        private void StopPythonProcess()
+        private void Model1Button_Click(object sender, RoutedEventArgs e)
         {
-            try
-            {
-                if (_pythonProcess != null && !_pythonProcess.HasExited)
-                {
-                    _pythonProcess.Kill();
-                    _pythonProcess.Dispose();
-                }
+            ToggleModel("Model1", ref _isModel1Running, (Button)sender, "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\posture_detection1.py");
+        }
 
-                _isRunning = false;
-                UpdateButtonUI(_isRunning);
+        private void Model2Button_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleModel("Model2", ref _isModel2Running, (Button)sender, "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\model2.py");
+        }
 
-            }
-            catch (Exception ex)
+        private void Model3Button_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleModel("Model3", ref _isModel3Running, (Button)sender, "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\model3.py");
+        }
+
+        private void Model4Button_Click(object sender, RoutedEventArgs e)
+        {
+            ToggleModel("Model4", ref _isModel4Running, (Button)sender, "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\model4.py");
+        }
+
+        private void LogoutButton_Click(object sender, RoutedEventArgs e)
+        {
+            var result = MessageBox.Show("Are you sure you want to log out?", "Logout Confirmation",
+                             MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (result == MessageBoxResult.Yes)
             {
-                MessageBox.Show($"Failed to stop the Python process: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                SessionManager.EndSession();
+                StopAllProcesses();
+                Close();
+                var mainWindow = new MainWindow();
+                mainWindow.Show();
             }
         }
 
-        private void UpdateButtonUI(bool isRunning)
+        private void Window_Closing(object sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (isRunning)
+            StopAllProcesses();
+        }
+
+        private void StopAllProcesses()
+        {
+            foreach (var modelName in _modelProcesses.Keys)
             {
-                RunPostureDetection.Content = "Stop";
-                RunPostureDetection.Background = Brushes.LightCoral;
-                RunPostureDetection.Foreground = Brushes.White;
+                try
+                {
+                    var process = _modelProcesses[modelName];
+                    if (!process.HasExited)
+                    {
+                        process.Kill();
+                        process.Dispose();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error stopping {modelName}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
-            else
+
+            if (_webcamServerProcess != null && !_webcamServerProcess.HasExited)
             {
-                RunPostureDetection.Content = "Start";
-                RunPostureDetection.Background = Brushes.LightGreen;
-                RunPostureDetection.Foreground = Brushes.Black;
+                try
+                {
+                    _webcamServerProcess.Kill();
+                    _webcamServerProcess.Dispose();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error stopping Webcam Server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
     }
