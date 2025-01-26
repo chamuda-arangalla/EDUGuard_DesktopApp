@@ -18,7 +18,7 @@ namespace EDUGuard_DesktopApp.Views
         private readonly Dictionary<string, Process> _modelProcesses = new Dictionary<string, Process>();
         private Process _webcamServerProcess;
         private bool _isModel1Running = false, _isModel2Running = false, _isModel3Running = false, _isModel4Running = false;
-        private readonly string _currentUserEmail; // Store the current user's email
+        private readonly string _currentUserEmail; 
 
         public DashboardView()
         {
@@ -71,6 +71,7 @@ namespace EDUGuard_DesktopApp.Views
             try
             {
                 _webcamServerProcess = Process.Start(processInfo);
+                MessageBox.Show($"process info : {_webcamServerProcess}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 if (_webcamServerProcess == null)
                 {
                     MessageBox.Show("Failed to start the webcam server.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
@@ -136,6 +137,7 @@ namespace EDUGuard_DesktopApp.Views
             {
                 MessageBox.Show($"Error starting {modelName}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+           
         }
 
         private void StopModel(string modelName, ref bool isRunning, Button modelButton)
@@ -160,6 +162,7 @@ namespace EDUGuard_DesktopApp.Views
             {
                 MessageBox.Show($"Error stopping {modelName}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+
         }
 
         private void UpdateButtonUI(Button button, bool isRunning, string startText, string stopText)
