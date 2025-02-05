@@ -10,12 +10,17 @@
 
 # Brief Description of  The Research Problem -
 ```
-Excessive digital screen use among students during and after the COVID-19 pandemic has led to significant health issues. 
-With educational activities shifting entirely online, students experienced prolonged screen exposure and reduced physical activity,
-contributing to various health complications.The lack of movement, poor posture, and increased stress levels exacerbated these problems.
-Common health concerns include weakened bones and muscles, immune system issues, obesity, and cardiovascular problems. Additionally, 
-prolonged screen time has led to posture-related issues such as back and neck pain, as well as eye problems like Computer Vision Syndrome (CVS). 
-The absence of effective monitoring and intervention has further increased the risk of long-term health consequences.
+Excessive digital screen use among students during and after the COVID-19 pandemic
+has led to significant health issues. With educational activities shifting entirely
+online, students experienced prolonged screen exposure and reduced physical activity,
+contributing to various health complications.The lack of movement, poor posture,
+and increased stress levels exacerbated these problems.
+Common health concerns include weakened bones and muscles,
+immune system issues, obesity, and cardiovascular problems. Additionally, 
+prolonged screen time has led to posture-related issues such as back and neck pain,
+as well as eye problems like Computer Vision Syndrome (CVS). 
+The absence of effective monitoring and intervention has further increased the risk of
+long-term health consequences.
 ```
 
 # Brief Description of  The Research Solution -
