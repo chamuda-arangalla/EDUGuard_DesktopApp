@@ -31,3 +31,10 @@ adjust their posture. This approach seeks to minimize health risks associated wi
 screen use and promote healthier study habits among students.
 
 ```
+
+# Compoent Diagram - 
+
+<p align="center">
+   <img src ="![Screenshot 2025-02-05 202339](https://github.com/user-attachments/assets/38ee30f7-0d9b-4686-b939-b08214d507bb)">
+
+</p>
