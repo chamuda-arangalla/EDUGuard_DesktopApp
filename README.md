@@ -2,39 +2,26 @@
 # Group Number - 24-25J-134
 | Name with initials | Registration Number | Contact Phone Number | Email                 | Badge         |
 | :---               |     :---:           |          :---:       |         :---:         |       :---:   |
-| Arangalla C.M.A    | IT21211850          | 077 5351306         | it21211850@my.sliit.lk| ![visitor badge](https://custom-icon-badges.demolab.com/badge/⭐-Leader-red)     |
-| Sandeeptha P.K.T     | IT21312694          | 071 9871480          | it21312694@my.sliit.lk| ![visitor badge](https://custom-icon-badges.demolab.com/badge/⭐-Member-green)   |
-| Virukshi W.R.S       | IT21212840          | 076 9208328          | it21212840@my.sliit.lk| ![visitor badge](https://custom-icon-badges.demolab.com/badge/⭐-Member-green)   |
-| Polhengoda P.M.Y.Y.B | IT21263576          | 076 7801452          | it21263576@my.sliit.lk| ![visitor badge](https://custom-icon-badges.demolab.com/badge/⭐-Member-green)   |                     
+| Arangallage C.M.A           | IT21211850          | 077 5351306        | it21211850@my.sliit.lk| ![visitor badge](https://custom-icon-badges.demolab.com/badge/⭐-Leader-red)   | 
+
+# Arangallage C.M.A
+
+## ML Base Posture detection  
+
+### Overview 
+To develop a system that accurately detects and monitors sitting posture in real-time, reducing the incidence of posture-related health issues in online learning.
+
+### Component Diagram 
+![image](https://github.com/user-attachments/assets/21ff9a1c-6d58-40b7-9bc5-e2cfd59c0c63)
 
 
-# Brief Description of  The Research Problem -
-```
-Excessive digital screen use among students during and after the COVID-19 pandemic
-has led to significant health issues. With educational activities shifting entirely
-online, students experienced prolonged screen exposure and reduced physical activity,
-contributing to various health complications.The lack of movement, poor posture,
-and increased stress levels exacerbated these problems.Common health concerns include
-weakened bones and muscles,immune system issues, obesity, and cardiovascular problems. Additionally, 
-prolonged screen time has led to posture-related issues such as back and neck pain,
-as well as eye problems like Computer Vision Syndrome (CVS). The absence of effective monitoring
-and intervention has further increased the risk of long-term health consequences.
-```
+### Main objective 
+To develop a system that uses geospatial data and modern technologies to ensure foreign tourists in Sri Lanka receive fair and transparent pricing for adventure and leisure activities, fostering trust between tourists and local vendors while supporting the growth of the tourism economy.
 
-# Brief Description of  The Research Solution -
-```
-To address these issues, this research aims to develop a system that utilizes image
-processing to monitor student activity. The system will track blinking rates, screen time,
-posture, and facial expressions to detect signs of stress. By analyzing these factors, the system
-will provide real-time reminders to encourage students to take breaks, stretch, or
-adjust their posture. This approach seeks to minimize health risks associated with excessive
-screen use and promote healthier study habits among students.
-
-```
-
-# Compoent Diagram - 
-
-<p align="center">
-   <img src ="https://github.com/user-attachments/assets/38ee30f7-0d9b-4686-b939-b08214d507bb">
-
-</p>
+### Sub Objectives
+* To identify and classify common poor sitting postures.
+* To integrate non-wearable sensors into the posture detection system.
+* To develop an algorithm that can differentiate between temporary and sustained poor postures, providing feedback only when necessary.
+* To evaluate the system’s effectiveness in different environments (e.g., home, library, and classroom settings).
+* To assess user compliance and comfort while using the posture detection system over an extended period.
+* To analyze the long-term health impact of using the posture detection system among online learning students.
