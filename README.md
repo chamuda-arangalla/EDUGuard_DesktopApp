@@ -2,34 +2,28 @@
 # Group Number - 24-25J-134
 | Name with initials | Registration Number | Contact Phone Number | Email                 | Badge         |
 | :---               |     :---:           |          :---:       |         :---:         |       :---:   |
-| Arangalla C.M.A    | IT21211850          | 077 5351306         | it21211850@my.sliit.lk| ![visitor badge](https://custom-icon-badges.demolab.com/badge/⭐-Leader-red)     |
-| Sandeeptha P.K.T     | IT21312694          | 071 9871480          | it21312694@my.sliit.lk| ![visitor badge](https://custom-icon-badges.demolab.com/badge/⭐-Member-green)   |
-| Virukshi W.R.S       | IT21212840          | 076 9208328          | it21212840@my.sliit.lk| ![visitor badge](https://custom-icon-badges.demolab.com/badge/⭐-Member-green)   |
-| Polhengoda P.M.Y.Y.B | IT21263576          | 076 7801452          | it21263576@my.sliit.lk| ![visitor badge](https://custom-icon-badges.demolab.com/badge/⭐-Member-green)   |                     
+| Sandeeptha P.K.T     | IT21312694          | 071 9871480          | it21312694@my.sliit.lk| ![visitor badge](https://custom-icon-badges.demolab.com/badge/⭐-Member-green)   |              
 
 
 # Brief Description of  The Research Problem -
 ```
-Excessive digital screen use among students during and after the COVID-19 pandemic
-has led to significant health issues. With educational activities shifting entirely
-online, students experienced prolonged screen exposure and reduced physical activity,
-contributing to various health complications.The lack of movement, poor posture,
-and increased stress levels exacerbated these problems.Common health concerns include
-weakened bones and muscles,immune system issues, obesity, and cardiovascular problems. Additionally, 
-prolonged screen time has led to posture-related issues such as back and neck pain,
-as well as eye problems like Computer Vision Syndrome (CVS). The absence of effective monitoring
-and intervention has further increased the risk of long-term health consequences.
+In online learning environments, students often experience stress due to various factors such as workload, deadlines, and lack of direct interaction with peers and instructors.
+ However, detecting stress in real-time is challenging because there are no widely available automated systems for monitoring students’ emotional states.
+  As a result, students may struggle to manage their stress effectively, which can negatively impact their learning outcomes. This situation presents several key challenges:
+
+➢ How to accurately detect stress levels in students during online learning sessions?  
+➢ How to provide real-time stress monitoring without interrupting the learning process?  
+➢ How to ensure privacy and security while collecting facial expression data?  
+➢ How to integrate stress detection with personalized recommendations for stress management?  
+➢ How to make the system accessible and easy to use for both students and educators?  
+
 ```
 
 # Brief Description of  The Research Solution -
 ```
-To address these issues, this research aims to develop a system that utilizes image
-processing to monitor student activity. The system will track blinking rates, screen time,
-posture, and facial expressions to detect signs of stress. By analyzing these factors, the system
-will provide real-time reminders to encourage students to take breaks, stretch, or
-adjust their posture. This approach seeks to minimize health risks associated with excessive
-screen use and promote healthier study habits among students.
-
+To develop a reliable and user-friendly stress detection system that utilizes facial expressions captured through a webcam to identify stress levels in students during online learning.
+ The system will leverage deep learning techniques to classify emotions, providing real-time feedback and personalized stress management recommendations,
+  thereby enhancing students' well-being and academic performance.  
 ```
 
 # Compoent Diagram - 
