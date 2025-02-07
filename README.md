@@ -9,14 +9,14 @@
 ## ML Base Posture detection  
 
 ### Overview 
-To develop a system that accurately detects and monitors sitting posture in real-time, reducing the incidence of posture-related health issues in online learning.
+Utilize machine learning models and techniques to identify the factors contributing to various poor postures in computer users.
 
 ### Component Diagram 
 ![image](https://github.com/user-attachments/assets/21ff9a1c-6d58-40b7-9bc5-e2cfd59c0c63)
 
 
 ### Main objective 
-To develop a system that uses geospatial data and modern technologies to ensure foreign tourists in Sri Lanka receive fair and transparent pricing for adventure and leisure activities, fostering trust between tourists and local vendors while supporting the growth of the tourism economy.
+To develop a system that accurately detects and monitors sitting posture in real-time, reducing the incidence of posture-related health issues in online learning.
 
 ### Sub Objectives
 * To identify and classify common poor sitting postures.
