@@ -1,0 +1,43 @@
+opencv-python
+numpy
+mediapipe
+pandas
+matplotlib
+scikit-learn
+seaborn
+plyer
+ultralytics
+
+# black
+# pylint
+# pytest
+# mypy
+# types-opencv-python
+
+
+
+
+
+
+
+
+
+
+
+
+# Core dependencies
+# opencv-python>=4.8.0  # Computer vision functionality
+# numpy>=1.24.0        # Numerical computations
+
+# # Data management
+# pandas>=2.0.0        # Data analysis and manipulation
+# scikit-learn>=1.3.0  # Machine learning utilities
+
+# # Development tools
+# black>=23.7.0        # Code formatting
+# pylint>=2.17.0       # Code linting
+# pytest>=7.4.0        # Testing framework
+
+# # Type checking
+# mypy>=1.5.0          # Static type checking
+# types-opencv-python  # Type stubs for OpenCV

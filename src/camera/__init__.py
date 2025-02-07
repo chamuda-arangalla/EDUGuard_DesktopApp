@@ -1,0 +1,3 @@
+"""
+Camera handling module initialization.
+"""
