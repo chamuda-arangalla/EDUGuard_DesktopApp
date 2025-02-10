@@ -3,8 +3,8 @@ from pymongo import MongoClient
 # MongoDB connection setup
 MONGO_URI = "mongodb+srv://myUser:myPassword123@cluster0.qk0epky.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 client = MongoClient(MONGO_URI)
-db = client["EDUGuardDB"]  # Replace with your database name
-users_collection = db["Users"]  # Replace with your collection name
+db = client["EDUGuardDB"]  
+users_collection = db["Users"]  
 
 def authenticate_user(email):
     """

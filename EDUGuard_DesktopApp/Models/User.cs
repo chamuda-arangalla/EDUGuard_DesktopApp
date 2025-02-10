@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using MongoDB.Bson;
+﻿using MongoDB.Bson;
 using MongoDB.Bson.Serialization.Attributes;
+using System.Collections.Generic;
 
 namespace EDUGuard_DesktopApp.Models
 {
@@ -22,6 +18,8 @@ namespace EDUGuard_DesktopApp.Models
 
         // field for Posture Data 
         public List<List<string>> PostureData { get; set; } = new List<List<string>>();
+
+        public List<List<string>> StressData { get; set; } = new List<List<string>>();
 
     }
 

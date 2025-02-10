@@ -270,7 +270,6 @@
     <Resource Include="Assets\settings-icon.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="PyFiles\posture_detection.py" />
     <Content Include="PyFiles\posture_detection1.py" />
     <Content Include="PyFiles\utils\mongodb_util.py" />
     <Content Include="PyFiles\webcam_server.py" />
