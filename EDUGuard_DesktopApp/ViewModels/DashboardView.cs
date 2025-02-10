@@ -291,7 +291,7 @@ namespace EDUGuard_DesktopApp.Views
 
         private void Model2Button_Click(object sender, RoutedEventArgs e)
         {
-            ToggleModel("Model2", ref _isModel2Running, (Button)sender, "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\model2.py");
+            ToggleModel("Model2", ref _isModel2Running, (Button)sender, "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\stress_detection.py");
         }
 
         private void Model3Button_Click(object sender, RoutedEventArgs e)
