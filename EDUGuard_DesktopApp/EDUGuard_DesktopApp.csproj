@@ -241,6 +241,7 @@
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
     <None Include="PyFiles\models\posture_classifier.pkl" />
+    <None Include="PyFiles\models\model_file_30epochs.h5" />
     <None Include="PyFiles\posture_classifier.pkl" />
     <None Include="PyFiles\utils\__pycache__\mongodb_util.cpython-312.pyc" />
   </ItemGroup>
@@ -270,7 +271,9 @@
     <Resource Include="Assets\settings-icon.png" />
   </ItemGroup>
   <ItemGroup>
+    <Resource Include="PyFiles\utils\haarcascade_frontalface_default.xml" />
     <Content Include="PyFiles\posture_detection1.py" />
+    <Content Include="PyFiles\stress_detection.py" />
     <Content Include="PyFiles\utils\mongodb_util.py" />
     <Content Include="PyFiles\webcam_server.py" />
   </ItemGroup>

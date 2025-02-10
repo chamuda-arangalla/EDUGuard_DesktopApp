@@ -41,3 +41,22 @@ def save_posture_data(email, posture_data):
         print(f"Saved posture data for {email}: {posture_data}")
     except Exception as e:
         print(f"Error saving posture data: {e}")
+
+def save_stress_data(email, stress_data):
+    """
+    Save posture data to the user's record in MongoDB.
+    :param email: User's email address.
+    :param stress_data: Stress data to save.
+    """
+    try:
+        user = authenticate_user(email)
+        if not user:
+            return
+
+        users_collection.update_one(
+            {"Email": email},
+            {"$push": {"StressData": stress_data}}
+        )
+        print(f"Saved stress data for {email}: {stress_data}")
+    except Exception as e:
+        print(f"Error saving stress data: {e}")
