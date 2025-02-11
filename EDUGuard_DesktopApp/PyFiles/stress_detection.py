@@ -95,9 +95,9 @@ try:
                 last_batch_time = current_time
 
         # Show the frame
-        cv2.imshow(f"{USER_EMAIL} - Stress Detection", frame)
-        if cv2.waitKey(10) & 0xFF == ord('q'):
-            break
+        #cv2.imshow(f"{USER_EMAIL} - Stress Detection", frame)
+        #if cv2.waitKey(10) & 0xFF == ord('q'):
+        #   break
 finally:
     client_socket.close()
     cv2.destroyAllWindows()
