@@ -23,16 +23,17 @@ namespace EDUGuard_DesktopApp.Views
         private bool _isModel1Running = false, _isModel2Running = false, _isModel3Running = false, _isModel4Running = false;
         private readonly string _currentUserEmail;
         private Timer _alertTimer;
+        private readonly string _logFilePath = "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\error_log.txt";
 
         public DashboardView()
         {
             if (!SessionManager.IsLoggedIn)
             {
-                MessageBox.Show("You are not authorized to access this window. Please log in.", "Access Denied",
-                                MessageBoxButton.OK, MessageBoxImage.Warning);
+                LogError("Access Denied: User not logged in.");
                 Close();
                 return;
             }
+        
 
             InitializeComponent();
             StartWebcamServer();
@@ -42,12 +43,12 @@ namespace EDUGuard_DesktopApp.Views
             _currentUserEmail = SessionManager.CurrentUser?.Email;
             if (string.IsNullOrEmpty(_currentUserEmail))
             {
-                MessageBox.Show("Failed to retrieve the user's email. Please log in again.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                LogError("Failed to retrieve the user's email.");
                 Close();
             }
 
-           
-        }
+
+            }
 
         private void LoadUserProfile()
         {
@@ -77,15 +78,14 @@ namespace EDUGuard_DesktopApp.Views
             try
             {
                 _webcamServerProcess = Process.Start(processInfo);
-                MessageBox.Show($"process info : {_webcamServerProcess}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
                 if (_webcamServerProcess == null)
                 {
-                    MessageBox.Show("Failed to start the webcam server.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    LogError("Failed to start the webcam server.");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error starting the webcam server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                LogError($"Error starting the webcam server: {ex.Message}");
             }
         }
 
@@ -94,15 +94,13 @@ namespace EDUGuard_DesktopApp.Views
             try
             {
                 var filter = Builders<User>.Filter.Eq(u => u.Email, _currentUserEmail);
-                var update = Builders<User>.Update.Set(u => u.PostureData, new List<List<string>>()); // Empty 2D List
+                var update = Builders<User>.Update.Set(u => u.PostureData, new List<List<string>>());
 
                 _dbHelper.Users.UpdateOne(filter, update);
-
-                //Console.WriteLine("Posture data cleared successfully.");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error clearing posture data: {ex.Message}", "Database Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                LogError($"Error clearing posture data: {ex.Message}");
             }
         }
 
@@ -135,7 +133,7 @@ namespace EDUGuard_DesktopApp.Views
                 var process = Process.Start(processInfo);
                 if (process == null)
                 {
-                    MessageBox.Show($"Failed to start {modelName}.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    LogError($"Failed to start {modelName}.");
                     return;
                 }
 
@@ -144,25 +142,17 @@ namespace EDUGuard_DesktopApp.Views
 
                 Task.Run(() =>
                 {
-                    ReadStreamAsync(process.StandardOutput, line =>
-                    {
-                        Dispatcher.Invoke(() => Console.WriteLine($"[{modelName} Output]: {line}"));
-                    });
-                    ReadStreamAsync(process.StandardError, line =>
-                    {
-                        Dispatcher.Invoke(() => Console.WriteLine($"[{modelName} Error]: {line}"));
-                    });
+                    ReadStreamAsync(process.StandardOutput, line => Console.WriteLine($"[{modelName} Output]: {line}"));
+                    ReadStreamAsync(process.StandardError, line => LogError($"[{modelName} Error]: {line}"));
                 });
 
-                isRunning = true; // Correctly set the running state
-                                  // Start posture alert monitoring
+                isRunning = true;
                 StartPostureMonitoring();
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error starting {modelName}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                LogError($"Error starting {modelName}: {ex.Message}");
             }
-           
         }
 
         private void StopModel(string modelName, ref bool isRunning, Button modelButton)
@@ -179,18 +169,16 @@ namespace EDUGuard_DesktopApp.Views
                     }
                     _modelProcesses.Remove(modelName);
 
-                    // Clear posture data when model stops
                     ClearPostureDataInDatabase();
 
                     UpdateButtonUI(modelButton, false, $"Start {modelName}", $"Stop {modelName}");
-                    isRunning = false; // Correctly update the running state
+                    isRunning = false;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error stopping {modelName}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                LogError($"Error stopping {modelName}: {ex.Message}");
             }
-
         }
 
         private void UpdateButtonUI(Button button, bool isRunning, string startText, string stopText)
@@ -276,10 +264,7 @@ namespace EDUGuard_DesktopApp.Views
                 }
                 catch (Exception ex)
                 {
-                    Dispatcher.Invoke(() =>
-                    {
-                        MessageBox.Show($"Stream read error: {ex.Message}", "Stream Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                    });
+                    LogError($"Stream read error: {ex.Message}");
                 }
             });
         }
@@ -397,7 +382,7 @@ namespace EDUGuard_DesktopApp.Views
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error stopping {modelName}: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    LogError($"Error stopping {modelName}: {ex.Message}");
                 }
             }
 
@@ -410,8 +395,21 @@ namespace EDUGuard_DesktopApp.Views
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Error stopping Webcam Server: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                    LogError($"Error stopping Webcam Server: {ex.Message}");
                 }
+            }
+        }
+
+        private void LogError(string message)
+        {
+            try
+            {
+                string logMessage = $"{DateTime.Now}: {message}\n";
+                File.AppendAllText(_logFilePath, logMessage);
+            }
+            catch
+            {
+                // Avoid crashes if logging fails
             }
         }
     }
