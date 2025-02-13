@@ -6,7 +6,7 @@ import socket
 import struct
 import pickle
 import time
-from utils.mongodb_util import save_posture_data
+from utils.mongodb_util import save_posture_data,update_posture_outputs
 import sys
 
 # Load the model
@@ -18,6 +18,7 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 USER_EMAIL = sys.argv[1]  # Get the user email from the arguments
+progress_report_id = sys.argv[2]
 
 # Connect to the webcam server
 HOST = '127.0.0.1'
@@ -113,7 +114,7 @@ try:
             # Save the batch to the database every 30 seconds
             if current_time - last_batch_time >= batch_interval:
                 if current_batch:  # Ensure there's data to save
-                    save_posture_data(USER_EMAIL, current_batch)
+                    update_posture_outputs(progress_report_id, current_batch)
                     current_batch = []  # Clear the batch after saving
                 last_batch_time = current_time
 

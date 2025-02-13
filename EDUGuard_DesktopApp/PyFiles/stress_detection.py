@@ -17,6 +17,7 @@ if len(sys.argv) < 2:
     sys.exit(1)
 
 USER_EMAIL = sys.argv[1]  # Get user email from the arguments
+progress_report_id = sys.argv[2]
 
 # Load face detector
 faceDetect = cv2.CascadeClassifier(r'C:\Users\chamu\source\repos\EDUGuard_DesktopApp\EDUGuard_DesktopApp\PyFiles\utils\haarcascade_frontalface_default.xml')

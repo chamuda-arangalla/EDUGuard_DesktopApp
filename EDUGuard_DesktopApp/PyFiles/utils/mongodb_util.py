@@ -1,10 +1,12 @@
 from pymongo import MongoClient
+from bson import ObjectId
 
 # MongoDB connection setup
 MONGO_URI = "mongodb+srv://myUser:myPassword123@cluster0.qk0epky.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 client = MongoClient(MONGO_URI)
 db = client["EDUGuardDB"]  
 users_collection = db["Users"]  
+progress_reports_collection = db["ProgressReports"]
 
 def authenticate_user(email):
     """
@@ -60,3 +62,29 @@ def save_stress_data(email, stress_data):
         print(f"Saved stress data for {email}: {stress_data}")
     except Exception as e:
         print(f"Error saving stress data: {e}")
+
+def update_posture_outputs(progress_report_id, new_outputs):
+    """
+    Updates only the 'outputs' array in PostureData for an existing ProgressReports document.
+    :param progress_report_id: The ID of the progress report to update.
+    :param new_outputs: The new posture output data to be appended.
+    """
+    try:
+        # Convert the string ID to an ObjectId
+        object_id = ObjectId(progress_report_id)
+
+        update_query = {
+            "$push": {
+                "PostureData.Outputs": {"$each": [new_outputs]}  # Append new outputs to existing array
+            }
+        }
+
+        result = progress_reports_collection.update_one({"_id": object_id}, update_query)
+
+        if result.matched_count > 0:
+            print(f"Successfully updated 'outputs' for Progress Report ID: {progress_report_id}")
+        else:
+            print(f"Progress report with ID {progress_report_id} not found.")
+
+    except Exception as e:
+        print(f"Error updating progress report: {e}")

@@ -89,20 +89,20 @@ namespace EDUGuard_DesktopApp.Views
             }
         }
 
-        private void ClearPostureDataInDatabase()
-        {
-            try
-            {
-                var filter = Builders<User>.Filter.Eq(u => u.Email, _currentUserEmail);
-                var update = Builders<User>.Update.Set(u => u.PostureData, new List<List<string>>());
+        //private void ClearPostureDataInDatabase()
+        //{
+        //    try
+        //    {
+        //        var filter = Builders<User>.Filter.Eq(u => u.Email, _currentUserEmail);
+        //        var update = Builders<User>.Update.Set(u => u.PostureData, new List<List<string>>());
 
-                _dbHelper.Users.UpdateOne(filter, update);
-            }
-            catch (Exception ex)
-            {
-                LogError($"Error clearing posture data: {ex.Message}");
-            }
-        }
+        //        _dbHelper.Users.UpdateOne(filter, update);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogError($"Error clearing posture data: {ex.Message}");
+        //    }
+        //}
 
         private void ToggleModel(string modelName, ref bool isRunning, Button modelButton, string scriptPath)
         {
@@ -116,12 +116,60 @@ namespace EDUGuard_DesktopApp.Views
             }
         }
 
+        //private void StartModel(string modelName, ref bool isRunning, Button modelButton, string scriptPath)
+        //{
+        //    var processInfo = new ProcessStartInfo
+        //    {
+        //        FileName = "python",
+        //        Arguments = $"{scriptPath} {_currentUserEmail}",
+        //        UseShellExecute = false,
+        //        RedirectStandardOutput = true,
+        //        RedirectStandardError = true,
+        //        CreateNoWindow = true
+        //    };
+
+        //    try
+        //    {
+        //        var process = Process.Start(processInfo);
+        //        if (process == null)
+        //        {
+        //            LogError($"Failed to start {modelName}.");
+        //            return;
+        //        }
+
+        //        _modelProcesses[modelName] = process;
+        //        UpdateButtonUI(modelButton, true, $"Start {modelName}", $"Stop {modelName}");
+
+        //        Task.Run(() =>
+        //        {
+        //            ReadStreamAsync(process.StandardOutput, line => Console.WriteLine($"[{modelName} Output]: {line}"));
+        //            ReadStreamAsync(process.StandardError, line => LogError($"[{modelName} Error]: {line}"));
+        //        });
+
+        //        isRunning = true;
+        //        //StartPostureMonitoring();
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogError($"Error starting {modelName}: {ex.Message}");
+        //    }
+        //}
+
         private void StartModel(string modelName, ref bool isRunning, Button modelButton, string scriptPath)
         {
+            var startTime = DateTime.UtcNow;
+            var progressReportId = _dbHelper.CreateProgressReport(_currentUserEmail, modelName, startTime);
+
+            if (string.IsNullOrEmpty(progressReportId))
+            {
+                LogError($"Failed to create progress report for {modelName}.");
+                return;
+            }
+
             var processInfo = new ProcessStartInfo
             {
                 FileName = "python",
-                Arguments = $"{scriptPath} {_currentUserEmail}",
+                Arguments = $"{scriptPath} {_currentUserEmail} {progressReportId}", // Pass progressReportId
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -147,13 +195,13 @@ namespace EDUGuard_DesktopApp.Views
                 });
 
                 isRunning = true;
-                StartPostureMonitoring();
             }
             catch (Exception ex)
             {
                 LogError($"Error starting {modelName}: {ex.Message}");
             }
         }
+
 
         private void StopModel(string modelName, ref bool isRunning, Button modelButton)
         {
@@ -169,7 +217,7 @@ namespace EDUGuard_DesktopApp.Views
                     }
                     _modelProcesses.Remove(modelName);
 
-                    ClearPostureDataInDatabase();
+                    //ClearPostureDataInDatabase();
 
                     UpdateButtonUI(modelButton, false, $"Start {modelName}", $"Stop {modelName}");
                     isRunning = false;
@@ -209,6 +257,8 @@ namespace EDUGuard_DesktopApp.Views
                 loginView.Show();
             }
         }
+
+
 
         /// <summary>
         /// Opens Settings.
@@ -289,54 +339,54 @@ namespace EDUGuard_DesktopApp.Views
             ToggleModel("Model4", ref _isModel4Running, (Button)sender, "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\model4.py");
         }
 
-        private void StartPostureMonitoring()
-        {
-            _alertTimer = new Timer(30000); // Check every 30 seconds
-            _alertTimer.Elapsed += CheckPostureAlerts;
-            _alertTimer.AutoReset = true;
-            _alertTimer.Start();
-        }
+        //private void StartPostureMonitoring()
+        //{
+        //    _alertTimer = new Timer(30000); // Check every 30 seconds
+        //    _alertTimer.Elapsed += CheckPostureAlerts;
+        //    _alertTimer.AutoReset = true;
+        //    _alertTimer.Start();
+        //}
 
-        private async void CheckPostureAlerts(object sender, ElapsedEventArgs e)
-        {
-            try
-            {
-                var filter = Builders<User>.Filter.Eq(u => u.Email, _currentUserEmail);
-                var user = await _dbHelper.Users.Find(filter).FirstOrDefaultAsync();
+        //private async void CheckPostureAlerts(object sender, ElapsedEventArgs e)
+        //{
+        //    try
+        //    {
+        //        var filter = Builders<User>.Filter.Eq(u => u.Email, _currentUserEmail);
+        //        var user = await _dbHelper.Users.Find(filter).FirstOrDefaultAsync();
 
-                if (user != null && user.PostureData != null)
-                {
-                    // Flatten the 2D array
-                    var allPostureData = user.PostureData.SelectMany(array => array).ToList();
+        //        if (user != null && user.PostureData != null)
+        //        {
+        //            // Flatten the 2D array
+        //            var allPostureData = user.PostureData.SelectMany(array => array).ToList();
 
-                    // Calculate percentage of "Bad Posture"
-                    int badPostureCount = allPostureData.Count(p => p == "Bad Posture");
-                    int totalCount = allPostureData.Count;
+        //            // Calculate percentage of "Bad Posture"
+        //            int badPostureCount = allPostureData.Count(p => p == "Bad Posture");
+        //            int totalCount = allPostureData.Count;
 
-                    if (totalCount > 0)
-                    {
-                        double badPosturePercentage = (double)badPostureCount / totalCount * 100;
+        //            if (totalCount > 0)
+        //            {
+        //                double badPosturePercentage = (double)badPostureCount / totalCount * 100;
 
-                        // Show alert if bad posture exceeds 70%
-                        if (badPosturePercentage > 70)
-                        {
-                            Dispatcher.Invoke(() =>
-                            {
-                                MessageBox.Show($"Alert! Your posture quality is poor: {badPosturePercentage:F1}% bad posture detected.",
-                                    "Posture Alert", MessageBoxButton.OK, MessageBoxImage.Warning);
-                            });
-                        }
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    MessageBox.Show($"Error checking posture alerts: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-                });
-            }
-        }
+        //                // Show alert if bad posture exceeds 70%
+        //                if (badPosturePercentage > 70)
+        //                {
+        //                    Dispatcher.Invoke(() =>
+        //                    {
+        //                        MessageBox.Show($"Alert! Your posture quality is poor: {badPosturePercentage:F1}% bad posture detected.",
+        //                            "Posture Alert", MessageBoxButton.OK, MessageBoxImage.Warning);
+        //                    });
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Dispatcher.Invoke(() =>
+        //        {
+        //            MessageBox.Show($"Error checking posture alerts: {ex.Message}", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        //        });
+        //    }
+        //}
 
 
         protected override void OnClosed(EventArgs e)
