@@ -155,6 +155,8 @@ namespace EDUGuard_DesktopApp.Views
         //    }
         //}
 
+        private Dictionary<string, string> _modelProgressReports = new Dictionary<string, string>();
+
         private void StartModel(string modelName, ref bool isRunning, Button modelButton, string scriptPath)
         {
             var startTime = DateTime.UtcNow;
@@ -166,10 +168,13 @@ namespace EDUGuard_DesktopApp.Views
                 return;
             }
 
+            // Store the progress report ID for later retrieval
+            _modelProgressReports[modelName] = progressReportId;
+
             var processInfo = new ProcessStartInfo
             {
                 FileName = "python",
-                Arguments = $"{scriptPath} {_currentUserEmail} {progressReportId}", // Pass progressReportId
+                Arguments = $"{scriptPath} {_currentUserEmail} {progressReportId}",
                 UseShellExecute = false,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -217,7 +222,16 @@ namespace EDUGuard_DesktopApp.Views
                     }
                     _modelProcesses.Remove(modelName);
 
-                    //ClearPostureDataInDatabase();
+                    // Retrieve the correct progress report ID
+                    if (_modelProgressReports.TryGetValue(modelName, out string progressReportId))
+                    {
+                        SaveEndTimeToDatabase(progressReportId, modelName);
+                        _modelProgressReports.Remove(modelName); // Remove after use
+                    }
+                    else
+                    {
+                        LogError($"Could not find progress report ID for {modelName}.");
+                    }
 
                     UpdateButtonUI(modelButton, false, $"Start {modelName}", $"Stop {modelName}");
                     isRunning = false;
@@ -228,6 +242,35 @@ namespace EDUGuard_DesktopApp.Views
                 LogError($"Error stopping {modelName}: {ex.Message}");
             }
         }
+
+
+
+
+        //private void StopModel(string modelName, ref bool isRunning, Button modelButton)
+        //{
+        //    try
+        //    {
+        //        if (_modelProcesses.ContainsKey(modelName))
+        //        {
+        //            var process = _modelProcesses[modelName];
+        //            if (!process.HasExited)
+        //            {
+        //                process.Kill();
+        //                process.Dispose();
+        //            }
+        //            _modelProcesses.Remove(modelName);
+
+        //            //ClearPostureDataInDatabase();
+
+        //            UpdateButtonUI(modelButton, false, $"Start {modelName}", $"Stop {modelName}");
+        //            isRunning = false;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        LogError($"Error stopping {modelName}: {ex.Message}");
+        //    }
+        //}
 
         private void UpdateButtonUI(Button button, bool isRunning, string startText, string stopText)
         {
@@ -321,12 +364,12 @@ namespace EDUGuard_DesktopApp.Views
 
         private void Model1Button_Click(object sender, RoutedEventArgs e)
         {
-            ToggleModel("Model1", ref _isModel1Running, (Button)sender, "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\posture_detection1.py");
+            ToggleModel("posture", ref _isModel1Running, (Button)sender, "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\posture_detection1.py");
         }
 
         private void Model2Button_Click(object sender, RoutedEventArgs e)
         {
-            ToggleModel("Model2", ref _isModel2Running, (Button)sender, "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\stress_detection.py");
+            ToggleModel("stress", ref _isModel2Running, (Button)sender, "C:\\Users\\chamu\\source\\repos\\EDUGuard_DesktopApp\\EDUGuard_DesktopApp\\PyFiles\\stress_detection.py");
         }
 
         private void Model3Button_Click(object sender, RoutedEventArgs e)
@@ -449,6 +492,46 @@ namespace EDUGuard_DesktopApp.Views
                 }
             }
         }
+
+        private void SaveEndTimeToDatabase(string progressReportId, string modelName)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(progressReportId) || !ObjectId.TryParse(progressReportId, out _))
+                {
+                    LogError($"Invalid progress report ID: {progressReportId}");
+                    return;
+                }
+
+                var filter = Builders<ProgressReports>.Filter.Eq(r => r.Id, progressReportId);
+                UpdateDefinition<ProgressReports> update = null;
+
+                if (modelName.ToLower().Contains("posture"))
+                {
+                    update = Builders<ProgressReports>.Update.Set(r => r.PostureData.EndTime, DateTime.UtcNow);
+                }
+                else if (modelName.ToLower().Contains("stress"))
+                {
+                    update = Builders<ProgressReports>.Update.Set(r => r.StressData.EndTime, DateTime.UtcNow);
+                }
+
+                if (update != null)
+                {
+                    var result = _dbHelper.ProgressReports.UpdateOne(filter, update);
+                    if (result.ModifiedCount == 0)
+                    {
+                        LogError($"Failed to update end time for {modelName} (ID: {progressReportId}).");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                LogError($"Error saving end time for {modelName} (ID: {progressReportId}): {ex.Message}");
+            }
+        }
+
+
+
 
         private void LogError(string message)
         {

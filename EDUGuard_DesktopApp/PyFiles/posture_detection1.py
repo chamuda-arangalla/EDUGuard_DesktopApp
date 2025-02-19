@@ -115,7 +115,7 @@ try:
             if current_time - last_batch_time >= batch_interval:
                 if current_batch:  # Ensure there's data to save
                     update_posture_outputs(progress_report_id, current_batch)
-                    current_batch = []  # Clear the batch after saving
+                    current_batch = []  # Clear the batch after saving 
                 last_batch_time = current_time
 
         # Show the frame

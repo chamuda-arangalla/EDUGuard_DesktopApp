@@ -58,6 +58,25 @@ namespace EDUGuard_DesktopApp
             return user?.Id;
         }
 
+        public string GetProgressReportId(string email, string modelName)
+        {
+            try
+            {
+                var filter = Builders<ProgressReports>.Filter.Eq(r => r.UserId, email);
+                var report = ProgressReports.Find(filter)
+                              .SortByDescending(r => r.PostureData.StartTime)
+                              .FirstOrDefault();
+
+                return report?.Id;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching progress report ID: {ex.Message}");
+                return null;
+            }
+        }
+
+
 
     }
 }
