@@ -116,44 +116,6 @@ namespace EDUGuard_DesktopApp.Views
             }
         }
 
-        //private void StartModel(string modelName, ref bool isRunning, Button modelButton, string scriptPath)
-        //{
-        //    var processInfo = new ProcessStartInfo
-        //    {
-        //        FileName = "python",
-        //        Arguments = $"{scriptPath} {_currentUserEmail}",
-        //        UseShellExecute = false,
-        //        RedirectStandardOutput = true,
-        //        RedirectStandardError = true,
-        //        CreateNoWindow = true
-        //    };
-
-        //    try
-        //    {
-        //        var process = Process.Start(processInfo);
-        //        if (process == null)
-        //        {
-        //            LogError($"Failed to start {modelName}.");
-        //            return;
-        //        }
-
-        //        _modelProcesses[modelName] = process;
-        //        UpdateButtonUI(modelButton, true, $"Start {modelName}", $"Stop {modelName}");
-
-        //        Task.Run(() =>
-        //        {
-        //            ReadStreamAsync(process.StandardOutput, line => Console.WriteLine($"[{modelName} Output]: {line}"));
-        //            ReadStreamAsync(process.StandardError, line => LogError($"[{modelName} Error]: {line}"));
-        //        });
-
-        //        isRunning = true;
-        //        //StartPostureMonitoring();
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogError($"Error starting {modelName}: {ex.Message}");
-        //    }
-        //}
 
         private Dictionary<string, string> _modelProgressReports = new Dictionary<string, string>();
 
@@ -243,34 +205,6 @@ namespace EDUGuard_DesktopApp.Views
             }
         }
 
-
-
-
-        //private void StopModel(string modelName, ref bool isRunning, Button modelButton)
-        //{
-        //    try
-        //    {
-        //        if (_modelProcesses.ContainsKey(modelName))
-        //        {
-        //            var process = _modelProcesses[modelName];
-        //            if (!process.HasExited)
-        //            {
-        //                process.Kill();
-        //                process.Dispose();
-        //            }
-        //            _modelProcesses.Remove(modelName);
-
-        //            //ClearPostureDataInDatabase();
-
-        //            UpdateButtonUI(modelButton, false, $"Start {modelName}", $"Stop {modelName}");
-        //            isRunning = false;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        LogError($"Error stopping {modelName}: {ex.Message}");
-        //    }
-        //}
 
         private void UpdateButtonUI(Button button, bool isRunning, string startText, string stopText)
         {
