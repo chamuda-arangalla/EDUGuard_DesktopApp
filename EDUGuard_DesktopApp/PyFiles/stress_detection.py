@@ -6,7 +6,7 @@ import struct
 import pickle
 import sys
 from keras.models import load_model
-from utils.mongodb_util import save_stress_data  # Ensure this function is implemented
+from utils.mongodb_util import update_stress_outputs  
 
 # Load the model
 model = load_model(r'C:\Users\chamu\source\repos\EDUGuard_DesktopApp\EDUGuard_DesktopApp\PyFiles\models\model_file_30epochs.h5')
@@ -91,7 +91,7 @@ try:
             # Save the batch to the database every 30 seconds
             if current_time - last_batch_time >= batch_interval:
                 if current_batch:  # Ensure there's data to save
-                    save_stress_data(USER_EMAIL, current_batch)
+                    update_stress_outputs(progress_report_id, current_batch)
                     current_batch = []  # Clear batch after saving
                 last_batch_time = current_time
 

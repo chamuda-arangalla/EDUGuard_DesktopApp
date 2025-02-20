@@ -88,3 +88,26 @@ def update_posture_outputs(progress_report_id, new_outputs):
 
     except Exception as e:
         print(f"Error updating progress report: {e}")
+
+
+def update_stress_outputs(progress_report_id, new_outputs):
+    
+    try:
+        # Convert the string ID to an ObjectId
+        object_id = ObjectId(progress_report_id)
+
+        update_query = {
+            "$push": {
+                "StressData.Outputs": {"$each": [new_outputs]}  # Append new outputs to existing array
+            }
+        }
+
+        result = progress_reports_collection.update_one({"_id": object_id}, update_query)
+
+        if result.matched_count > 0:
+            print(f"Successfully updated 'outputs' for Progress Report ID: {progress_report_id}")
+        else:
+            print(f"Progress report with ID {progress_report_id} not found.")
+
+    except Exception as e:
+        print(f"Error updating progress report: {e}")

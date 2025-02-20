@@ -243,6 +243,7 @@
     </None>
     <None Include="PyFiles\models\posture_classifier.pkl" />
     <None Include="PyFiles\models\model_file_30epochs.h5" />
+    <None Include="PyFiles\models\random_forest_model.h5" />
     <None Include="PyFiles\posture_classifier.pkl" />
     <None Include="PyFiles\utils\__pycache__\mongodb_util.cpython-312.pyc" />
   </ItemGroup>
